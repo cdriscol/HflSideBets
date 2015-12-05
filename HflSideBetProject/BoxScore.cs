@@ -77,9 +77,9 @@ namespace CodedUITestProject1
             doc.LoadHtml(html);
             
             var longFg = doc.DocumentNode.SelectNodes("//tr[td//text()[contains(., '"+kickerName+"')]]//td[contains(@class, 'long')]");
-
             LongestFieldGoalKicker = kickerName;
-            LongestFieldGoal = longFg[0].getDoubleFromInnerText();
+            LongestFieldGoal = longFg == null ? 0 : longFg[0].getDoubleFromInnerText();
+            
             //Trace.WriteLine(string.Format("{0} had a {1} yd FG", kickerName, LongestFieldGoal));
         }
 
