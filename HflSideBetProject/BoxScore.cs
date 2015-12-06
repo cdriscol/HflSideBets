@@ -89,6 +89,7 @@ namespace CodedUITestProject1
         {
             var rows = document.DocumentNode.SelectNodes("//tr[contains(@class, 'pncPlayerRow')]");
             var def = rows[7].SelectNodes(".//a[contains(@class, 'gamestatus')]//@href");
+            if (def == null) return;
 
             var url = def[0].GetAttributeValue("href", "");
             url = url.Replace("game?", "boxscore?");
