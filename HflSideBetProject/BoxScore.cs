@@ -68,6 +68,7 @@ namespace CodedUITestProject1
         {
             var rows = document.DocumentNode.SelectNodes("//tr[contains(@class, 'pncPlayerRow')]");
             var kicker = rows[8];
+            if (kicker.SelectNodes(".//a") == null) return;
             var kickerName = kicker.SelectNodes(".//a")[0].InnerText;
 
             var kickerNode = kicker.SelectNodes(".//a[contains(@class, 'gamestatus')]//@href");
@@ -165,7 +166,10 @@ namespace CodedUITestProject1
 
             if (isHome)
             {
-                var playerName = document.DocumentNode.SelectSingleNode("(//tr[contains(@class, 'pncPlayerRow') and td[1]//text()[contains(., '" + position + "')]])[" + index + "]//a").InnerText;
+                var playerNode = document.DocumentNode.SelectSingleNode("(//tr[contains(@class, 'pncPlayerRow') and td[1]//text()[contains(., '" + position + "')]])[" + index + "]//a");
+                if (playerNode == null) return 0;
+                
+                var playerName = playerNode.InnerText;
                 if (points > MaxPlayerPoints)
                 {
                     MaxPlayerPoints = points;
