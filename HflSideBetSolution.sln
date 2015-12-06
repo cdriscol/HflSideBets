@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 2012
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "HflSideBetProject", "CodedUITestProject1\HflSideBetProject.csproj", "{F62416C8-C454-453C-8DC5-79D1A75B5ABF}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "HflSideBetProject", "HflSideBetProject\HflSideBetProject.csproj", "{F62416C8-C454-453C-8DC5-79D1A75B5ABF}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

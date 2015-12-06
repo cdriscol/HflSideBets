@@ -57,6 +57,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="BoxScore.cs" />
+    <Compile Include="BoxScoreData.cs" />
     <Compile Include="HflSideBets.cs" />
     <Compile Include="FantasyFootballMap.cs">
       <DependentUpon>FantasyFootballMap.uitest</DependentUpon>

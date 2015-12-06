@@ -8,6 +8,7 @@ using HtmlAgilityPack;
 
 namespace CodedUITestProject1
 {
+    [Serializable]
     public class BoxScore
     {
         HtmlDocument document;
@@ -39,16 +40,17 @@ namespace CodedUITestProject1
         public string LongestFieldGoalKicker { get; set; }
         public double MaxPlayerPoints { get; set; }
         public string MaxPlayerPointsPlayer { get; set; }
-
-        private int teamId;
-        public int week;
+        public int TeamId { get; set; }
+        public int Week { get; set; }
+        public int Year { get; set; }
 
         public BoxScore() { }
 
-        public BoxScore(string html, int teamId, int week)
+        public BoxScore(string html, int teamId, int week, int year)
         {
-            this.teamId = teamId;
-            this.week = week;
+            this.TeamId = teamId;
+            this.Week = week;
+            this.Year = year;
             document = new HtmlDocument();
             document.LoadHtml(html);
             ParseDocument();
@@ -64,12 +66,13 @@ namespace CodedUITestProject1
 
         private void LoadLongestFieldGoal()
         {
-            //Trace.WriteLine("Checking for longest FG");
             var rows = document.DocumentNode.SelectNodes("//tr[contains(@class, 'pncPlayerRow')]");
             var kicker = rows[8];
             var kickerName = kicker.SelectNodes(".//a")[0].InnerText;
 
-            var url = kicker.SelectNodes(".//a[contains(@class, 'gamestatus')]//@href")[0].GetAttributeValue("href", "");
+            var kickerNode = kicker.SelectNodes(".//a[contains(@class, 'gamestatus')]//@href");
+            if (kickerNode == null) return;
+            var url = kickerNode[0].GetAttributeValue("href", "");
             url = url.Replace("game?", "boxscore?");
             var web = new HtmlWeb();
             var html = web.Load(url).DocumentNode.OuterHtml;
@@ -79,13 +82,10 @@ namespace CodedUITestProject1
             var longFg = doc.DocumentNode.SelectNodes("//tr[td//text()[contains(., '"+kickerName+"')]]//td[contains(@class, 'long')]");
             LongestFieldGoalKicker = kickerName;
             LongestFieldGoal = longFg == null ? 0 : longFg[0].getDoubleFromInnerText();
-            
-            //Trace.WriteLine(string.Format("{0} had a {1} yd FG", kickerName, LongestFieldGoal));
         }
 
         private void LoadSacks()
         {
-            //Trace.WriteLine("Loading sacks and punts");
             var rows = document.DocumentNode.SelectNodes("//tr[contains(@class, 'pncPlayerRow')]");
             var def = rows[7].SelectNodes(".//a[contains(@class, 'gamestatus')]//@href");
 
@@ -186,7 +186,6 @@ namespace CodedUITestProject1
             var nodes = document.DocumentNode.SelectNodes("//div[@class='danglerBox totalScore']");
             HomeScore = nodes[0].getDoubleFromInnerText();
             AwayScore = nodes[1].getDoubleFromInnerText();
-            // Trace.WriteLine(string.Format("Home score: {0} -- Away score: {1}", HomeScore, AwayScore));
         }
     }
 

@@ -8,6 +8,7 @@ using HtmlAgilityPack;
 
 namespace CodedUITestProject1
 {
+    [Serializable]
     public class FullBoxScore
     {
         HtmlDocument document;
@@ -18,16 +19,18 @@ namespace CodedUITestProject1
         public string MostCatchesPlayer;
         public double MostCatches = 0;
 
-        private int teamId;
-        public int week;
+        public int Year { get; set; }
+        public int TeamId { get; set; }
+        public int Week { get; set; }
 
         public FullBoxScore() { }
 
-        public FullBoxScore(string html, int teamId, int week)
+        public FullBoxScore(string html, int teamId, int week, int year)
         {
             Trace.WriteLine(string.Format("Loading full box score for {0} in week {1}", teamId, week));
-            this.teamId = teamId;
-            this.week = week;
+            this.TeamId = teamId;
+            this.Week = week;
+            this.Year = year;
             document = new HtmlDocument();
             document.LoadHtml(html);
             LoadCatches();
@@ -60,10 +63,6 @@ namespace CodedUITestProject1
                 
                 Turnovers += fumbles + interceptions;
             }
-
-            //Trace.WriteLine(string.Format("Turnovers: {0}", Turnovers));
-            //Trace.WriteLine(string.Format("Most rushes: {0} ({1})", MostRushes, MostRushesPlayer));
-            //Trace.WriteLine(string.Format("Most catches: {0} ({1})", MostCatches, MostCatchesPlayer));
         }
     }
 }

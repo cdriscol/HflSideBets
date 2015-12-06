@@ -15,12 +15,10 @@ using System.Diagnostics;
 
 namespace CodedUITestProject1
 {
-    /// <summary>
-    /// Summary description for HflSideBets
-    /// </summary>
     [CodedUITest]
     public class HflSideBets
     {
+        public const int year = 2015;
         public const string url_scoreboard = @"http://games.espn.go.com/ffl/scoreboard?leagueId=481687&seasonId=2015";
         public const string url_boxscore = "http://games.espn.go.com/ffl/boxscorequick?leagueId=481687&teamId={0}&scoringPeriodId={1}&seasonId=2015&view=scoringperiod&version=quick";
         public const string url_fullscore = "http://games.espn.go.com/ffl/boxscorefull?leagueId=481687&teamId={0}&scoringPeriodId={1}&seasonId=2015&view=scoringperiod&version=full";
@@ -59,14 +57,14 @@ namespace CodedUITestProject1
         };
 
         public Dictionary<int, BoxScore> mostTeamPtsInLoss = new Dictionary<int, BoxScore>();
-        public Dictionary<int, BoxScore> mostDefPts       = new Dictionary<int, BoxScore>();
-        public Dictionary<int, BoxScore> mostPlyPoints = new Dictionary<int, BoxScore>();
-        public Dictionary<int, BoxScore> longestPunt      = new Dictionary<int, BoxScore>();
-        public Dictionary<int, double> mostSacks        = new Dictionary<int, double>();
-        public Dictionary<int, BoxScore> longestFGs = new Dictionary<int, BoxScore>();
-        public Dictionary<int, FullBoxScore> mostCatches      = new Dictionary<int, FullBoxScore>();
-        public Dictionary<int, FullBoxScore> mostRushes = new Dictionary<int, FullBoxScore>();
-        public Dictionary<int, FullBoxScore> mostTOsInWin = new Dictionary<int, FullBoxScore>();
+        public Dictionary<int, BoxScore> mostDefPts        = new Dictionary<int, BoxScore>();
+        public Dictionary<int, BoxScore> mostPlyPoints     = new Dictionary<int, BoxScore>();
+        public Dictionary<int, BoxScore> longestPunt       = new Dictionary<int, BoxScore>();
+        public Dictionary<int, double> mostSacks           = new Dictionary<int, double>();
+        public Dictionary<int, BoxScore> longestFGs        = new Dictionary<int, BoxScore>();
+        public Dictionary<int, FullBoxScore> mostCatches   = new Dictionary<int, FullBoxScore>();
+        public Dictionary<int, FullBoxScore> mostRushes    = new Dictionary<int, FullBoxScore>();
+        public Dictionary<int, FullBoxScore> mostTOsInWin  = new Dictionary<int, FullBoxScore>();
 
         [TestMethod, Timeout(TestTimeout.Infinite)]
         public void NavigateAllWeeks()
@@ -81,12 +79,24 @@ namespace CodedUITestProject1
                 Trace.WriteLine(string.Format("Processing week {0}", week));
                 foreach (var team in teams)
                 {
-                    Trace.WriteLine(string.Format("Processing team {0} in week {1}", team, week));
-                    map.NavigateToUrl(getBoxScore(team, week));
-                    var boxScore = new BoxScore(map.getHtml(), team, week);
-                    map.NavigateToUrl(getFullBoxScore(team, week));
-                    var fullBoxScore = new FullBoxScore(map.getHtml(), team, week);
 
+                    Trace.WriteLine(string.Format("Processing team {0} in week {1}", team, week));
+                    var boxScore = BoxScoreData.getBoxScore(year, week, team);
+                    if (boxScore == null)
+                    {
+                        map.NavigateToUrl(getBoxScore(team, week));
+                        boxScore = new BoxScore(map.getHtml(), team, week, year);
+                        BoxScoreData.saveBoxScore(boxScore);
+                    }
+
+                    var fullBoxScore = BoxScoreData.getFullBoxScore(year, week, team);
+                    if (fullBoxScore == null)
+                    {
+                        map.NavigateToUrl(getFullBoxScore(team, week));
+                        fullBoxScore = new FullBoxScore(map.getHtml(), team, week, year);
+                        BoxScoreData.saveFullBoxScore(fullBoxScore);
+                    }
+                    
                     if (mostDefPts[team] == null || mostDefPts[team].HomeDefensePts < boxScore.HomeDefensePts)
                     {
                         mostDefPts[team] = boxScore;
@@ -130,19 +140,24 @@ namespace CodedUITestProject1
                     if (!teamWon && (mostPlyPoints[team] == null || mostPlyPoints[team].MaxPlayerPoints < boxScore.MaxPlayerPoints))
                     {
                         mostPlyPoints[team] = boxScore;
-                        Trace.WriteLine(string.Format("Most player points in loss: {0} ({1}, wk{2})", mostPlyPoints[team].MaxPlayerPoints, mostPlyPoints[team].MaxPlayerPointsPlayer, mostPlyPoints[team].week));
+                        Trace.WriteLine(string.Format("Most player points in loss: {0} ({1}, wk{2})", mostPlyPoints[team].MaxPlayerPoints, mostPlyPoints[team].MaxPlayerPointsPlayer, mostPlyPoints[team].Week));
                     }
 
                     if (!teamWon && (mostTeamPtsInLoss[team] == null || mostTeamPtsInLoss[team].HomeScore < boxScore.HomeScore))
                     {
                         mostTeamPtsInLoss[team] = boxScore;
-                        Trace.WriteLine(string.Format("Most team points in loss: {0} (wk{1})", mostTeamPtsInLoss[team].HomeScore, mostTeamPtsInLoss[team].week));
+                        Trace.WriteLine(string.Format("Most team points in loss: {0} (wk{1})", mostTeamPtsInLoss[team].HomeScore, mostTeamPtsInLoss[team].Week));
                     }
                 }
             }
 
+            PrintSummary();
+        }
+
+        private void PrintSummary()
+        {
             Console.WriteLine("Longest FG:");
-            teams.ForEach(t => Console.WriteLine(string.Format("{0}: {1} ({2}, wk{3})", owners[t], longestFGs[t].LongestFieldGoal, longestFGs[t].LongestFieldGoalKicker, longestFGs[t].week)));
+            teams.ForEach(t => Console.WriteLine(string.Format("{0}: {1} ({2}, wk{3})", owners[t], longestFGs[t].LongestFieldGoal, longestFGs[t].LongestFieldGoalKicker, longestFGs[t].Week)));
             Console.WriteLine("");
 
             Console.WriteLine("Most DEF sacks:");
@@ -150,34 +165,34 @@ namespace CodedUITestProject1
             Console.WriteLine("");
 
             Console.WriteLine("Most catches in a single game:");
-            teams.ForEach(t => Console.WriteLine(string.Format("{0}: {1} ({2}, wk{3})", owners[t], mostCatches[t].MostCatches, mostCatches[t].MostCatchesPlayer, mostCatches[t].week)));
+            teams.ForEach(t => Console.WriteLine(string.Format("{0}: {1} ({2}, wk{3})", owners[t], mostCatches[t].MostCatches, mostCatches[t].MostCatchesPlayer, mostCatches[t].Week)));
             Console.WriteLine("");
 
             Console.WriteLine("Most team points scored in a loss:");
-            teams.ForEach(t => Console.WriteLine(string.Format("{0}: {1} wk{2}", owners[t], mostTeamPtsInLoss[t].HomeScore, mostTeamPtsInLoss[t].week)));
+            teams.ForEach(t => Console.WriteLine(string.Format("{0}: {1} wk{2}", owners[t], mostTeamPtsInLoss[t].HomeScore, mostTeamPtsInLoss[t].Week)));
             Console.WriteLine("");
 
             Console.WriteLine("Longest TD run or catch (calculated manually)");
             Console.WriteLine("");
 
             Console.WriteLine("Most player points in a loss:");
-            teams.ForEach(t => Console.WriteLine(string.Format("{0}: {1} ({2}, wk{3})", owners[t], mostPlyPoints[t].MaxPlayerPoints, mostPlyPoints[t].MaxPlayerPointsPlayer, mostPlyPoints[t].week)));
+            teams.ForEach(t => Console.WriteLine(string.Format("{0}: {1} ({2}, wk{3})", owners[t], mostPlyPoints[t].MaxPlayerPoints, mostPlyPoints[t].MaxPlayerPointsPlayer, mostPlyPoints[t].Week)));
             Console.WriteLine("");
 
             Console.WriteLine("Most DEF points in a single game:");
-            teams.ForEach(t => Console.WriteLine(string.Format("{0}: {1} ({2}, wk{3})", owners[t], mostDefPts[t].HomeDefensePts, mostDefPts[t].HomeDefense, mostDefPts[t].week)));
+            teams.ForEach(t => Console.WriteLine(string.Format("{0}: {1} ({2}, wk{3})", owners[t], mostDefPts[t].HomeDefensePts, mostDefPts[t].HomeDefense, mostDefPts[t].Week)));
             Console.WriteLine("");
 
             Console.WriteLine("Longest punt:");
-            teams.ForEach(t => Console.WriteLine(string.Format("{0}: {1} ({2}, wk{3})", owners[t], longestPunt[t].LongPunt, longestPunt[t].HomeDefense, longestPunt[t].week)));
+            teams.ForEach(t => Console.WriteLine(string.Format("{0}: {1} ({2}, wk{3})", owners[t], longestPunt[t].LongPunt, longestPunt[t].HomeDefense, longestPunt[t].Week)));
             Console.WriteLine("");
 
             Console.WriteLine("Most rushes in a single game:");
-            teams.ForEach(t => Console.WriteLine(string.Format("{0}: {1} ({2}, wk{3})", owners[t], mostRushes[t].MostRushes, mostRushes[t].MostRushesPlayer, mostRushes[t].week)));
+            teams.ForEach(t => Console.WriteLine(string.Format("{0}: {1} ({2}, wk{3})", owners[t], mostRushes[t].MostRushes, mostRushes[t].MostRushesPlayer, mostRushes[t].Week)));
             Console.WriteLine("");
 
             Console.WriteLine("Most TOs in a win:");
-            teams.ForEach(t => Console.WriteLine(string.Format("{0}: {1} wk{2}", owners[t], mostTOsInWin[t].Turnovers, mostTOsInWin[t].week)));
+            teams.ForEach(t => Console.WriteLine(string.Format("{0}: {1} wk{2}", owners[t], mostTOsInWin[t].Turnovers, mostTOsInWin[t].Week)));
             Console.WriteLine("");
         }
 
@@ -188,7 +203,7 @@ namespace CodedUITestProject1
 
             // week 1
             map.NavigateToUrl(getBoxScore(erikId, 1));
-            var boxScore = new BoxScore(map.getHtml(), erikId, 1);
+            var boxScore = new BoxScore(map.getHtml(), erikId, 1, year);
             Assert.AreEqual(5, boxScore.TotalSacks);
             Assert.AreEqual(56, boxScore.LongPunt);
             Assert.AreEqual("Dan Bailey", boxScore.LongestFieldGoalKicker);
@@ -219,10 +234,40 @@ namespace CodedUITestProject1
             Assert.AreEqual(116.8, boxScore.HomeScore);
             Assert.AreEqual(91.4, boxScore.AwayScore);
 
-
+            // test storing the data
+            BoxScoreData.saveBoxScore(boxScore);
+            var boxScore2 = BoxScoreData.getBoxScore(year, 1, erikId);
+            Assert.AreEqual(5, boxScore2.TotalSacks);
+            Assert.AreEqual(56, boxScore2.LongPunt);
+            Assert.AreEqual("Dan Bailey", boxScore2.LongestFieldGoalKicker);
+            Assert.AreEqual(32, boxScore2.LongestFieldGoal);
+            Assert.AreEqual(14.3, boxScore2.HomeQBPts);
+            Assert.AreEqual(12.4, boxScore2.HomeRB1Pts);
+            Assert.AreEqual(13.1, boxScore2.HomeRB2Pts);
+            Assert.AreEqual(4.8, boxScore2.HomeWR1Pts);
+            Assert.AreEqual(13.2, boxScore2.HomeWR2Pts);
+            Assert.AreEqual(12.3, boxScore2.HomeTEPts);
+            Assert.AreEqual(10.7, boxScore2.HomeFLEXPts);
+            Assert.AreEqual(27, boxScore2.HomeDefensePts);
+            Assert.AreEqual(9, boxScore2.HomeKPts);
+            Assert.AreEqual(27, boxScore2.MaxPlayerPoints);
+            Assert.AreEqual("Panthers D/ST", boxScore2.MaxPlayerPointsPlayer);
+            Assert.AreEqual("Panthers D/ST", boxScore2.HomeDefense);
+            Assert.AreEqual(25, boxScore2.AwayQBPts);
+            Assert.AreEqual(18.3, boxScore2.AwayRB1Pts);
+            Assert.AreEqual(4.1, boxScore2.AwayRB2Pts);
+            Assert.AreEqual(4.4, boxScore2.AwayWR1Pts);
+            Assert.AreEqual(12.6, boxScore2.AwayWR2Pts);
+            Assert.AreEqual(7.3, boxScore2.AwayTEPts);
+            Assert.AreEqual(4.7, boxScore2.AwayFLEXPts);
+            Assert.AreEqual(4, boxScore2.AwayDefensePts);
+            Assert.AreEqual(11, boxScore2.AwayKPts);
+            Assert.AreEqual(116.8, boxScore2.HomeScore);
+            Assert.AreEqual(91.4, boxScore2.AwayScore);
+            
             // week 2
             map.NavigateToUrl(getBoxScore(erikId, 2));
-            boxScore = new BoxScore(map.getHtml(), erikId, 2);
+            boxScore = new BoxScore(map.getHtml(), erikId, 2, year);
             Assert.AreEqual(1, boxScore.TotalSacks);
             Assert.AreEqual(65, boxScore.LongPunt);
             Assert.AreEqual("Dan Bailey", boxScore.LongestFieldGoalKicker);
@@ -256,7 +301,7 @@ namespace CodedUITestProject1
 
             // week 9
             map.NavigateToUrl(getBoxScore(erikId, 9));
-            boxScore = new BoxScore(map.getHtml(), erikId, 9);
+            boxScore = new BoxScore(map.getHtml(), erikId, 9, year);
             Assert.AreEqual(0, boxScore.AwayKPts);
         }
 
@@ -267,13 +312,23 @@ namespace CodedUITestProject1
             var map = new FantasyFootballMap();
             map.NavigateToUrl(getFullBoxScore(ryanId, week));
             
-            var boxScore = new FullBoxScore(map.getHtml(), ryanId, week);
+            var boxScore = new FullBoxScore(map.getHtml(), ryanId, week, year);
 
             Assert.AreEqual(2, boxScore.Turnovers);
             Assert.AreEqual(15, boxScore.MostCatches);
             Assert.AreEqual("Keenan Allen", boxScore.MostCatchesPlayer);
             Assert.AreEqual(12, boxScore.MostRushes);
             Assert.AreEqual("C.J. Anderson", boxScore.MostRushesPlayer);
+
+            BoxScoreData.saveFullBoxScore(boxScore);
+            var boxScore2 = BoxScoreData.getFullBoxScore(year, week, ryanId);
+            Assert.IsNotNull(boxScore2);
+
+            Assert.AreEqual(2, boxScore2.Turnovers);
+            Assert.AreEqual(15, boxScore2.MostCatches);
+            Assert.AreEqual("Keenan Allen", boxScore2.MostCatchesPlayer);
+            Assert.AreEqual(12, boxScore2.MostRushes);
+            Assert.AreEqual("C.J. Anderson", boxScore2.MostRushesPlayer);
         }
 
         private void initDictionaries()
