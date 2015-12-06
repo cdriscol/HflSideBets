@@ -70,7 +70,7 @@ namespace CodedUITestProject1
         public void NavigateAllWeeks()
         {
             //var weeks = 14;
-            var weeks = 10;
+            var weeks = 12;
             initDictionaries();
             Trace.WriteLine("NavigateAllWeeks");
             var map = new FantasyFootballMap();

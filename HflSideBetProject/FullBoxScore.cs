@@ -42,7 +42,9 @@ namespace CodedUITestProject1
             var playerRows = playerTable.SelectNodes(".//tr[contains(@class, 'pncPlayerRow')]");
             foreach (var playerRow in playerRows)
             {
-                var playerName = playerRow.SelectNodes(".//td[contains(@class, 'playertablePlayerName')]//a[1]")[0].InnerText;
+                var playerNode = playerRow.SelectNodes(".//td[contains(@class, 'playertablePlayerName')]//a[1]");
+                if (playerNode == null) continue;
+                var playerName = playerNode[0].InnerText;
                 var cells = playerRow.SelectNodes(".//td[@class='playertableStat ']");
                 var receptions = cells[7].getDoubleFromInnerText();
                 var rushes = cells[4].getDoubleFromInnerText();
