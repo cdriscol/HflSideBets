@@ -18,10 +18,10 @@ namespace CodedUITestProject1
     [CodedUITest]
     public class HflSideBets
     {
-        public const int year = 2015;
-        public const string url_scoreboard = @"http://games.espn.go.com/ffl/scoreboard?leagueId=481687&seasonId=2015";
-        public const string url_boxscore = "http://games.espn.go.com/ffl/boxscorequick?leagueId=481687&teamId={0}&scoringPeriodId={1}&seasonId=2015&view=scoringperiod&version=quick";
-        public const string url_fullscore = "http://games.espn.go.com/ffl/boxscorefull?leagueId=481687&teamId={0}&scoringPeriodId={1}&seasonId=2015&view=scoringperiod&version=full";
+        public const int year = 2016;
+        public const string url_scoreboard = @"http://games.espn.go.com/ffl/scoreboard?leagueId=481687&scoringPeriodId=16";
+        public const string url_boxscore = "http://games.espn.go.com/ffl/boxscorequick?leagueId=481687&teamId={0}&scoringPeriodId={1}&seasonId={2}&view=scoringperiod&version=quick";
+        public const string url_fullscore = "http://games.espn.go.com/ffl/boxscorefull?leagueId=481687&teamId={0}&scoringPeriodId={1}&seasonId={2}&view=scoringperiod&version=full";
         
         public const int chrisId = 1;
         public const int ryanId = 3;
@@ -29,8 +29,10 @@ namespace CodedUITestProject1
         public const int erikId = 9;
         public const int courtId = 5;
         public const int nateId = 4;
+        public const int joelId = 21;
         public const int daneId = 19;
         public const int shawnId = 20;
+
 
         public List<int> teams = new List<int> 
         { 
@@ -39,9 +41,10 @@ namespace CodedUITestProject1
             erikId, 
             chrisId, 
             nateId, 
-            ericId, 
-            daneId, 
-            shawnId 
+            ericId,
+            joelId
+            //daneId, 
+            //shawnId 
         };
 
         public Dictionary<int, string> owners = new Dictionary<int, string>
@@ -53,13 +56,15 @@ namespace CodedUITestProject1
             {nateId, "Nate"},
             {ericId, "Eric"},
             {daneId, "Dane"},
-            {shawnId, "Shawn"}
+            {shawnId, "Shawn"},
+            {joelId, "Joel"}
         };
 
         public Dictionary<int, BoxScore> mostTeamPtsInLoss = new Dictionary<int, BoxScore>();
         public Dictionary<int, BoxScore> mostDefPts        = new Dictionary<int, BoxScore>();
         public Dictionary<int, BoxScore> mostPlyPoints     = new Dictionary<int, BoxScore>();
         public Dictionary<int, BoxScore> longestPunt       = new Dictionary<int, BoxScore>();
+        public Dictionary<int, BoxScore> longestPlay = new Dictionary<int, BoxScore>();
         public Dictionary<int, double> mostSacks           = new Dictionary<int, double>();
         public Dictionary<int, BoxScore> longestFGs        = new Dictionary<int, BoxScore>();
         public Dictionary<int, FullBoxScore> mostCatches   = new Dictionary<int, FullBoxScore>();
@@ -69,8 +74,8 @@ namespace CodedUITestProject1
         [TestMethod, Timeout(TestTimeout.Infinite)]
         public void NavigateAllWeeks()
         {
-            //var weeks = 14;
-            var weeks = 12;
+            //var weeks = 2;
+            var weeks = 13;
             initDictionaries();
             Trace.WriteLine("NavigateAllWeeks");
             var map = new FantasyFootballMap();
@@ -80,11 +85,11 @@ namespace CodedUITestProject1
                 foreach (var team in teams)
                 {
 
-                    Trace.WriteLine(string.Format("Processing team {0} in week {1}", team, week));
+                    Trace.WriteLine(string.Format("Processing team {0} in week {1}", owners[team], week));
                     var boxScore = BoxScoreData.getBoxScore(year, week, team);
                     if (boxScore == null)
                     {
-                        map.NavigateToUrl(getBoxScore(team, week));
+                        map.NavigateToUrl(getBoxScoreUrl(team, week));
                         boxScore = new BoxScore(map.getHtml(), team, week, year);
                         BoxScoreData.saveBoxScore(boxScore);
                     }
@@ -92,7 +97,7 @@ namespace CodedUITestProject1
                     var fullBoxScore = BoxScoreData.getFullBoxScore(year, week, team);
                     if (fullBoxScore == null)
                     {
-                        map.NavigateToUrl(getFullBoxScore(team, week));
+                        map.NavigateToUrl(getFullBoxScoreUrl(team, week));
                         fullBoxScore = new FullBoxScore(map.getHtml(), team, week, year);
                         BoxScoreData.saveFullBoxScore(fullBoxScore);
                     }
@@ -116,6 +121,12 @@ namespace CodedUITestProject1
                     {
                         longestFGs[team] = boxScore;
                         Trace.WriteLine(string.Format("Longest FG: {0} ({1})", boxScore.LongestFieldGoalKicker, boxScore.LongestFieldGoal));
+                    }
+
+                    if (longestPlay[team] == null || longestPlay[team].LongestPlay < boxScore.LongestPlay)
+                    {
+                        longestPlay[team] = boxScore;
+                        Trace.WriteLine(string.Format("Longest Play: {0} ({1})", boxScore.LongestPlayPlayer, boxScore.LongestPlay));
                     }
 
                     if (mostCatches[team] == null || mostCatches[team].MostCatches < fullBoxScore.MostCatches)
@@ -156,53 +167,65 @@ namespace CodedUITestProject1
 
         private void PrintSummary()
         {
-            Console.WriteLine("Longest FG:");
-            teams.ForEach(t => Console.WriteLine(string.Format("{0}: {1} ({2}, wk{3})", owners[t], longestFGs[t].LongestFieldGoal, longestFGs[t].LongestFieldGoalKicker, longestFGs[t].Week)));
-            Console.WriteLine("");
+            Trace.WriteLine("Longest FG:");
+            teams.Sort(delegate(int t1, int t2) { return longestFGs[t1].LongestFieldGoal > longestFGs[t2].LongestFieldGoal ? -1 : 1; });
+            teams.ForEach(t => Trace.WriteLine(string.Format("{0}: {1} ({2}, wk{3})", owners[t], longestFGs[t].LongestFieldGoal, longestFGs[t].LongestFieldGoalKicker, longestFGs[t].Week)));
+            Trace.WriteLine("");
 
-            Console.WriteLine("Most DEF sacks:");
-            teams.ForEach(t => Console.WriteLine(string.Format("{0}: {1}", owners[t], mostSacks[t])));
-            Console.WriteLine("");
+            Trace.WriteLine("Most DEF sacks:");
+            teams.Sort(delegate(int t1, int t2) { return mostSacks[t1] > mostSacks[t2] ? -1 : 1; });
+            teams.ForEach(t => Trace.WriteLine(string.Format("{0}: {1}", owners[t], mostSacks[t])));
+            Trace.WriteLine("");
 
-            Console.WriteLine("Most catches in a single game:");
-            teams.ForEach(t => Console.WriteLine(string.Format("{0}: {1} ({2}, wk{3})", owners[t], mostCatches[t].MostCatches, mostCatches[t].MostCatchesPlayer, mostCatches[t].Week)));
-            Console.WriteLine("");
+            Trace.WriteLine("Most catches in a single game:");
+            teams.Sort(delegate(int t1, int t2) { return mostCatches[t1].MostCatches > mostCatches[t2].MostCatches ? -1 : 1; });
+            teams.ForEach(t => Trace.WriteLine(string.Format("{0}: {1} ({2}, wk{3})", owners[t], mostCatches[t].MostCatches, mostCatches[t].MostCatchesPlayer, mostCatches[t].Week)));
+            Trace.WriteLine("");
 
-            Console.WriteLine("Most team points scored in a loss:");
-            teams.ForEach(t => Console.WriteLine(string.Format("{0}: {1} wk{2}", owners[t], mostTeamPtsInLoss[t].HomeScore, mostTeamPtsInLoss[t].Week)));
-            Console.WriteLine("");
+            Trace.WriteLine("Most team points scored in a loss:");
+            teams.Sort(delegate(int t1, int t2) { return mostTeamPtsInLoss[t1].HomeScore > mostTeamPtsInLoss[t2].HomeScore ? -1 : 1; });
+            teams.ForEach(t => Trace.WriteLine(string.Format("{0}: {1} wk{2}", owners[t], mostTeamPtsInLoss[t].HomeScore, mostTeamPtsInLoss[t].Week)));
+            Trace.WriteLine("");
 
-            Console.WriteLine("Longest TD run or catch (calculated manually)");
-            Console.WriteLine("");
+            Trace.WriteLine("Longest TD run or catch (make sure it's a TD!)");
+            teams.Sort(delegate(int t1, int t2) { return longestPlay[t1].LongestPlay > longestPlay[t2].LongestPlay ? -1 : 1; });
+            teams.ForEach(t => Trace.WriteLine(string.Format("{0}: {1} ({2}, wk{3})", owners[t], longestPlay[t].LongestPlay, longestPlay[t].LongestPlayPlayer, longestPlay[t].Week)));
+            Trace.WriteLine("");
 
-            Console.WriteLine("Most player points in a loss:");
-            teams.ForEach(t => Console.WriteLine(string.Format("{0}: {1} ({2}, wk{3})", owners[t], mostPlyPoints[t].MaxPlayerPoints, mostPlyPoints[t].MaxPlayerPointsPlayer, mostPlyPoints[t].Week)));
-            Console.WriteLine("");
+            Trace.WriteLine("Most player points in a loss:");
+            teams.Sort(delegate(int t1, int t2) { return mostPlyPoints[t1].MaxPlayerPoints > mostPlyPoints[t2].MaxPlayerPoints ? -1 : 1; });
+            teams.ForEach(t => Trace.WriteLine(string.Format("{0}: {1} ({2}, wk{3})", owners[t], mostPlyPoints[t].MaxPlayerPoints, mostPlyPoints[t].MaxPlayerPointsPlayer, mostPlyPoints[t].Week)));
+            Trace.WriteLine("");
 
-            Console.WriteLine("Most DEF points in a single game:");
-            teams.ForEach(t => Console.WriteLine(string.Format("{0}: {1} ({2}, wk{3})", owners[t], mostDefPts[t].HomeDefensePts, mostDefPts[t].HomeDefense, mostDefPts[t].Week)));
-            Console.WriteLine("");
+            Trace.WriteLine("Most DEF points in a single game:");
+            teams.Sort(delegate(int t1, int t2) { return mostDefPts[t1].HomeDefensePts > mostDefPts[t2].HomeDefensePts ? -1 : 1; });
+            teams.ForEach(t => Trace.WriteLine(string.Format("{0}: {1} ({2}, wk{3})", owners[t], mostDefPts[t].HomeDefensePts, mostDefPts[t].HomeDefense, mostDefPts[t].Week)));
+            Trace.WriteLine("");
 
-            Console.WriteLine("Longest punt:");
-            teams.ForEach(t => Console.WriteLine(string.Format("{0}: {1} ({2}, wk{3})", owners[t], longestPunt[t].LongPunt, longestPunt[t].HomeDefense, longestPunt[t].Week)));
-            Console.WriteLine("");
+            Trace.WriteLine("Longest punt:");
+            teams.Sort(delegate(int t1, int t2) { return longestPunt[t1].LongPunt > longestPunt[t2].LongPunt ? -1 : 1; });
+            teams.ForEach(t => Trace.WriteLine(string.Format("{0}: {1} ({2}, wk{3})", owners[t], longestPunt[t].LongPunt, longestPunt[t].HomeDefense, longestPunt[t].Week)));
+            Trace.WriteLine("");
 
-            Console.WriteLine("Most rushes in a single game:");
-            teams.ForEach(t => Console.WriteLine(string.Format("{0}: {1} ({2}, wk{3})", owners[t], mostRushes[t].MostRushes, mostRushes[t].MostRushesPlayer, mostRushes[t].Week)));
-            Console.WriteLine("");
+            Trace.WriteLine("Most rushes in a single game:");
+            teams.Sort(delegate(int t1, int t2) { return mostRushes[t1].MostRushes > mostRushes[t2].MostRushes ? -1 : 1; });
+            teams.ForEach(t => Trace.WriteLine(string.Format("{0}: {1} ({2}, wk{3})", owners[t], mostRushes[t].MostRushes, mostRushes[t].MostRushesPlayer, mostRushes[t].Week)));
+            Trace.WriteLine("");
 
-            Console.WriteLine("Most TOs in a win:");
-            teams.ForEach(t => Console.WriteLine(string.Format("{0}: {1} wk{2}", owners[t], mostTOsInWin[t].Turnovers, mostTOsInWin[t].Week)));
-            Console.WriteLine("");
+            Trace.WriteLine("Most TOs in a win:");
+            teams.Sort(delegate(int t1, int t2) { return mostTOsInWin[t1].Turnovers > mostTOsInWin[t2].Turnovers ? -1 : 1; });
+            teams.ForEach(t => Trace.WriteLine(string.Format("{0}: {1} wk{2}", owners[t], mostTOsInWin[t].Turnovers, mostTOsInWin[t].Week)));
+            Trace.WriteLine("");
+            Trace.Flush();
         }
 
-        [TestMethod]
+        [TestMethod, Ignore]
         public void ECWeeks1And2BoxScore()
         {
             var map = new FantasyFootballMap();
 
             // week 1
-            map.NavigateToUrl(getBoxScore(erikId, 1));
+            map.NavigateToUrl(getBoxScoreUrl(erikId, 1));
             var boxScore = new BoxScore(map.getHtml(), erikId, 1, year);
             Assert.AreEqual(5, boxScore.TotalSacks);
             Assert.AreEqual(56, boxScore.LongPunt);
@@ -266,7 +289,7 @@ namespace CodedUITestProject1
             Assert.AreEqual(91.4, boxScore2.AwayScore);
             
             // week 2
-            map.NavigateToUrl(getBoxScore(erikId, 2));
+            map.NavigateToUrl(getBoxScoreUrl(erikId, 2));
             boxScore = new BoxScore(map.getHtml(), erikId, 2, year);
             Assert.AreEqual(1, boxScore.TotalSacks);
             Assert.AreEqual(65, boxScore.LongPunt);
@@ -300,17 +323,17 @@ namespace CodedUITestProject1
             Assert.AreEqual(83.9, boxScore.AwayScore);
 
             // week 9
-            map.NavigateToUrl(getBoxScore(erikId, 9));
+            map.NavigateToUrl(getBoxScoreUrl(erikId, 9));
             boxScore = new BoxScore(map.getHtml(), erikId, 9, year);
             Assert.AreEqual(0, boxScore.AwayKPts);
         }
 
-        [TestMethod]
+        [TestMethod, Ignore]
         public void RyanWeek1FullBox()
         {
             var week = 1;
             var map = new FantasyFootballMap();
-            map.NavigateToUrl(getFullBoxScore(ryanId, week));
+            map.NavigateToUrl(getFullBoxScoreUrl(ryanId, week));
             
             var boxScore = new FullBoxScore(map.getHtml(), ryanId, week, year);
 
@@ -340,6 +363,7 @@ namespace CodedUITestProject1
                 longestPunt.Add(team, new BoxScore());
                 mostSacks.Add(team, 0);
                 longestFGs.Add(team, new BoxScore());
+                longestPlay.Add(team, new BoxScore());
                 mostCatches.Add(team, new FullBoxScore());
                 mostRushes.Add(team, new FullBoxScore());
                 mostTOsInWin.Add(team, new FullBoxScore());
@@ -347,14 +371,14 @@ namespace CodedUITestProject1
             }                   
         }
 
-        private string getBoxScore(int teamId, int week)
+        private string getBoxScoreUrl(int teamId, int week)
         {
-            return string.Format(url_boxscore, teamId, week);
+            return string.Format(url_boxscore, teamId, week, year);
         }
 
-        private string getFullBoxScore(int teamId, int week)
+        private string getFullBoxScoreUrl(int teamId, int week)
         {
-            return string.Format(url_fullscore, teamId, week);            
+            return string.Format(url_fullscore, teamId, week, year);            
         }
     }
 }

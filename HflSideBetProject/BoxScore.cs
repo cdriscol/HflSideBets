@@ -38,6 +38,8 @@ namespace CodedUITestProject1
         public double LongPunt { get; set; }
         public double LongestFieldGoal { get; set; }
         public string LongestFieldGoalKicker { get; set; }
+        public double LongestPlay { get; set; }
+        public string LongestPlayPlayer { get; set; }
         public double MaxPlayerPoints { get; set; }
         public string MaxPlayerPointsPlayer { get; set; }
         public int TeamId { get; set; }
@@ -60,11 +62,54 @@ namespace CodedUITestProject1
         {
             LoadPlayerPoints();
             LoadTotalPoints();
-            LoadSacks();
-            LoadLongestFieldGoal();
+            LoadDefStats();
+            LoadKickerStats();
+            LoadLongestRunCatchStats();
         }
 
-        private void LoadLongestFieldGoal()
+        private void LoadLongestRunCatchStats()
+        {
+            var rows = document.DocumentNode.SelectNodes("//tr[contains(@class, 'pncPlayerRow')]");
+
+            for (var i = 1; i < 8; i++)
+            {
+                var player = rows[i];
+                if (player.SelectNodes(".//a") == null) return;
+                var playerName = player.SelectNodes(".//a")[0].InnerText;
+
+                var playerNode = player.SelectNodes(".//a[contains(@class, 'gamestatus')]//@href");
+                if (playerNode == null) return;
+                var url = playerNode[0].GetAttributeValue("href", "");
+                var urlParams = url.Split('?');
+                var gameId = urlParams.Last();
+                url = url.Replace("game?", "boxscore?");
+
+                var html = BoxScoreData.getGameStatHtml(gameId);
+                if (html == null)
+                {
+                    var web = new HtmlWeb();
+                    html = web.Load(url).DocumentNode.OuterHtml;
+                    BoxScoreData.saveGameStatHtml(gameId, html);
+                }
+                
+                var doc = new HtmlDocument();
+                doc.LoadHtml(html);
+
+                var longPlayNodes = doc.DocumentNode.SelectNodes("//tr[td//text()[contains(., '" + playerName + "')]]//td[contains(@class, 'long')]");
+                if(longPlayNodes == null) continue;
+                foreach(var longPlayNode in longPlayNodes) 
+                {
+                    var longPlay = longPlayNode.getDoubleFromInnerText();
+                    if(longPlay > LongestPlay) 
+                    {
+                        LongestPlay = longPlay;
+                        LongestPlayPlayer = playerName;
+                    }
+                }
+            }
+        }
+
+        private void LoadKickerStats()
         {
             var rows = document.DocumentNode.SelectNodes("//tr[contains(@class, 'pncPlayerRow')]");
             var kicker = rows[8];
@@ -85,7 +130,7 @@ namespace CodedUITestProject1
             LongestFieldGoal = longFg == null ? 0 : longFg[0].getDoubleFromInnerText();
         }
 
-        private void LoadSacks()
+        private void LoadDefStats()
         {
             var rows = document.DocumentNode.SelectNodes("//tr[contains(@class, 'pncPlayerRow')]");
             var def = rows[7].SelectNodes(".//a[contains(@class, 'gamestatus')]//@href");

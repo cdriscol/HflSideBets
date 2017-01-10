@@ -13,6 +13,7 @@ namespace CodedUITestProject1
         private static string _dataPath = @"C:\hflscores\";
         private static string _typeFbs = "fbs";
         private static string _typeBs = "bs";
+        private static string _typeStats = "stats";
         
         public static BoxScore getBoxScore(int year, int week, int teamId)
         {
@@ -52,9 +53,31 @@ namespace CodedUITestProject1
             writer.Close();
         }
 
+        public static void saveGameStatHtml(string gameId, string html)
+        {
+            var fileName = buildFilePath(gameId, _typeStats);
+            File.WriteAllText(fileName, html);
+        }
+
+        public static string getGameStatHtml(string gameId)
+        {
+            var fileName = buildFilePath(gameId, _typeStats);
+            if (File.Exists(fileName))
+            {
+                return File.ReadAllText(buildFilePath(gameId, _typeStats));
+            }
+            return null;
+        }
+
         private static string buildFilePath(int year, int week, int teamId, string type)
         {
             var fileName = String.Format("{0}_{1}_{2}_{3}.xml", year, week, teamId, type);
+            return String.Format("{0}{1}", _dataPath, fileName);
+        }
+
+        private static string buildFilePath(string gameId, string type)
+        {
+            var fileName = String.Format("{0}_{1}.xml", gameId, type);
             return String.Format("{0}{1}", _dataPath, fileName);
         }
     }
