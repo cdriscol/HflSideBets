@@ -34,6 +34,7 @@ namespace CodedUITestProject1
             {14, "Eric"},
             // {19, "Dane"},
             {21, "Joel"},
+            {22, "Sean"},
             {23, "Scott"}
         };
 
