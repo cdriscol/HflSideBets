@@ -95,7 +95,7 @@ namespace CodedUITestProject1
                 var doc = new HtmlDocument();
                 doc.LoadHtml(html);
 
-                var longPlayNodes = doc.DocumentNode.SelectNodes("//tr[td//text()[contains(., '" + playerName + "')]]//td[contains(@class, 'long')]");
+                var longPlayNodes = doc.DocumentNode.SelectNodes("//tr[td//text()[contains(., \"" + playerName.Replace("'", "\'") + "\")]]//td[contains(@class, 'long')]");
                 if(longPlayNodes == null) continue;
                 foreach(var longPlayNode in longPlayNodes) 
                 {
