@@ -4,6 +4,7 @@ using System.Text.RegularExpressions;
 using System.Windows.Input;
 using System.Windows.Forms;
 using System.Drawing;
+using System.Linq;
 using Microsoft.VisualStudio.TestTools.UITesting;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Microsoft.VisualStudio.TestTools.UITest.Extension;
@@ -18,47 +19,29 @@ namespace CodedUITestProject1
     [CodedUITest]
     public class HflSideBets
     {
-        public const int year = 2016;
+        public const int year = 2017;
         public const string url_scoreboard = @"http://games.espn.go.com/ffl/scoreboard?leagueId=481687&scoringPeriodId=16";
         public const string url_boxscore = "http://games.espn.go.com/ffl/boxscorequick?leagueId=481687&teamId={0}&scoringPeriodId={1}&seasonId={2}&view=scoringperiod&version=quick";
         public const string url_fullscore = "http://games.espn.go.com/ffl/boxscorefull?leagueId=481687&teamId={0}&scoringPeriodId={1}&seasonId={2}&view=scoringperiod&version=full";
         
-        public const int chrisId = 1;
-        public const int ryanId = 3;
-        public const int ericId = 14;
-        public const int erikId = 9;
-        public const int courtId = 5;
-        public const int nateId = 4;
-        public const int joelId = 21;
-        public const int daneId = 19;
-        public const int shawnId = 20;
-
-
-        public List<int> teams = new List<int> 
-        { 
-            ryanId, 
-            courtId, 
-            erikId, 
-            chrisId, 
-            nateId, 
-            ericId,
-            joelId
-            //daneId, 
-            //shawnId 
-        };
-
         public Dictionary<int, string> owners = new Dictionary<int, string>
         {
-            {ryanId, "Ryan"},
-            {courtId, "Court"},
-            {erikId, "EC"},
-            {chrisId, "Chris"},
-            {nateId, "Nate"},
-            {ericId, "Eric"},
-            {daneId, "Dane"},
-            {shawnId, "Shawn"},
-            {joelId, "Joel"}
+            {3, "Ryan"},
+            {5, "Court"},
+            {9, "EC"},
+            {1, "Chris"},
+            {4, "Nate"},
+            {14, "Eric"},
+            // {19, "Dane"},
+            {21, "Joel"},
+            {23, "Scott"}
         };
+
+        private List<int> teamIds {
+            get {
+                return new List<int>(owners.Keys.ToArray<int>());
+            }
+        }
 
         public Dictionary<int, BoxScore> mostTeamPtsInLoss = new Dictionary<int, BoxScore>();
         public Dictionary<int, BoxScore> mostDefPts        = new Dictionary<int, BoxScore>();
@@ -74,15 +57,15 @@ namespace CodedUITestProject1
         [TestMethod, Timeout(TestTimeout.Infinite)]
         public void NavigateAllWeeks()
         {
-            //var weeks = 2;
-            var weeks = 13;
+            var weeks = 6;
+            //var weeks = 13;
             initDictionaries();
             Trace.WriteLine("NavigateAllWeeks");
             var map = new FantasyFootballMap();
             for (int week = 1; week <= weeks; week++)
             {
                 Trace.WriteLine(string.Format("Processing week {0}", week));
-                foreach (var team in teams)
+                foreach (var team in teamIds)
                 {
 
                     Trace.WriteLine(string.Format("Processing team {0} in week {1}", owners[team], week));
@@ -167,6 +150,7 @@ namespace CodedUITestProject1
 
         private void PrintSummary()
         {
+            List<int> teams = teamIds;
             Trace.WriteLine("Longest FG:");
             teams.Sort(delegate(int t1, int t2) { return longestFGs[t1].LongestFieldGoal > longestFGs[t2].LongestFieldGoal ? -1 : 1; });
             teams.ForEach(t => Trace.WriteLine(string.Format("{0}: {1} ({2}, wk{3})", owners[t], longestFGs[t].LongestFieldGoal, longestFGs[t].LongestFieldGoalKicker, longestFGs[t].Week)));
@@ -223,7 +207,7 @@ namespace CodedUITestProject1
         public void ECWeeks1And2BoxScore()
         {
             var map = new FantasyFootballMap();
-
+            var erikId = 9;
             // week 1
             map.NavigateToUrl(getBoxScoreUrl(erikId, 1));
             var boxScore = new BoxScore(map.getHtml(), erikId, 1, year);
@@ -331,6 +315,7 @@ namespace CodedUITestProject1
         [TestMethod, Ignore]
         public void RyanWeek1FullBox()
         {
+            var ryanId = 3;
             var week = 1;
             var map = new FantasyFootballMap();
             map.NavigateToUrl(getFullBoxScoreUrl(ryanId, week));
@@ -356,18 +341,18 @@ namespace CodedUITestProject1
 
         private void initDictionaries()
         {
-            foreach(var team in teams) 
+            foreach(var teamId in teamIds) 
             {
-                mostTeamPtsInLoss.Add(team, new BoxScore());
-                mostDefPts.Add(team, new BoxScore());
-                longestPunt.Add(team, new BoxScore());
-                mostSacks.Add(team, 0);
-                longestFGs.Add(team, new BoxScore());
-                longestPlay.Add(team, new BoxScore());
-                mostCatches.Add(team, new FullBoxScore());
-                mostRushes.Add(team, new FullBoxScore());
-                mostTOsInWin.Add(team, new FullBoxScore());
-                mostPlyPoints.Add(team, new BoxScore());
+                mostTeamPtsInLoss.Add(teamId, new BoxScore());
+                mostDefPts.Add(teamId, new BoxScore());
+                longestPunt.Add(teamId, new BoxScore());
+                mostSacks.Add(teamId, 0);
+                longestFGs.Add(teamId, new BoxScore());
+                longestPlay.Add(teamId, new BoxScore());
+                mostCatches.Add(teamId, new FullBoxScore());
+                mostRushes.Add(teamId, new FullBoxScore());
+                mostTOsInWin.Add(teamId, new FullBoxScore());
+                mostPlyPoints.Add(teamId, new BoxScore());
             }                   
         }
 
