@@ -33,7 +33,7 @@ namespace CodedUITestProject1
             {4, "Nate"},
             {14, "Eric"},
             // {19, "Dane"},
-            {21, "Joel"},
+            // {21, "Joel"},
             {22, "Sean"},
             {23, "Scott"}
         };
@@ -58,18 +58,18 @@ namespace CodedUITestProject1
         [TestMethod, Timeout(TestTimeout.Infinite)]
         public void NavigateAllWeeks()
         {
-            var weeks = 6;
-            //var weeks = 13;
+            // var weeks = 6;
+            var weeks = 1;
             initDictionaries();
-            Trace.WriteLine("NavigateAllWeeks");
+            Logger.log("NavigateAllWeeks");
             var map = new FantasyFootballMap();
             for (int week = 1; week <= weeks; week++)
             {
-                Trace.WriteLine(string.Format("Processing week {0}", week));
+                Logger.log(string.Format("Processing week {0}", week));
                 foreach (var team in teamIds)
                 {
 
-                    Trace.WriteLine(string.Format("Processing team {0} in week {1}", owners[team], week));
+                    Logger.log(string.Format("Processing team {0} in week {1}", owners[team], week));
                     var boxScore = BoxScoreData.getBoxScore(year, week, team);
                     if (boxScore == null)
                     {
@@ -89,59 +89,59 @@ namespace CodedUITestProject1
                     if (mostDefPts[team] == null || mostDefPts[team].HomeDefensePts < boxScore.HomeDefensePts)
                     {
                         mostDefPts[team] = boxScore;
-                        Trace.WriteLine("Most def points: " + boxScore.HomeDefensePts);
+                        Logger.log("Most def points: " + boxScore.HomeDefensePts);
                     }
 
                     if ((longestPunt[team] == null || longestPunt[team].LongPunt < boxScore.LongPunt))
                     {
                         longestPunt[team] = boxScore;
-                        Trace.WriteLine("Longest punt: " + boxScore.LongPunt);
+                        Logger.log("Longest punt: " + boxScore.LongPunt);
                     }
 
                     mostSacks[team] += boxScore.TotalSacks;
-                    Trace.WriteLine("Total sacks: " + mostSacks[team]);
+                    Logger.log("Total sacks: " + mostSacks[team]);
 
                     if (longestFGs[team] == null || longestFGs[team].LongestFieldGoal < boxScore.LongestFieldGoal)
                     {
                         longestFGs[team] = boxScore;
-                        Trace.WriteLine(string.Format("Longest FG: {0} ({1})", boxScore.LongestFieldGoalKicker, boxScore.LongestFieldGoal));
+                        Logger.log(string.Format("Longest FG: {0} ({1})", boxScore.LongestFieldGoalKicker, boxScore.LongestFieldGoal));
                     }
 
                     if (longestPlay[team] == null || longestPlay[team].LongestPlay < boxScore.LongestPlay)
                     {
                         longestPlay[team] = boxScore;
-                        Trace.WriteLine(string.Format("Longest Play: {0} ({1})", boxScore.LongestPlayPlayer, boxScore.LongestPlay));
+                        Logger.log(string.Format("Longest Play: {0} ({1})", boxScore.LongestPlayPlayer, boxScore.LongestPlay));
                     }
 
                     if (mostCatches[team] == null || mostCatches[team].MostCatches < fullBoxScore.MostCatches)
                     {
                         mostCatches[team] = fullBoxScore;
-                        Trace.WriteLine(string.Format("Most catches: {0} ({1})", mostCatches[team].MostCatchesPlayer, mostCatches[team].MostCatches));
+                        Logger.log(string.Format("Most catches: {0} ({1})", mostCatches[team].MostCatchesPlayer, mostCatches[team].MostCatches));
                     }
 
                     if (mostRushes[team] == null || mostRushes[team].MostRushes < fullBoxScore.MostRushes)
                     {
                         mostRushes[team] = fullBoxScore;
-                        Trace.WriteLine(string.Format("Most rushes: {0} ({1})", mostRushes[team].MostRushesPlayer, mostRushes[team].MostRushes));
+                        Logger.log(string.Format("Most rushes: {0} ({1})", mostRushes[team].MostRushesPlayer, mostRushes[team].MostRushes));
                     }
 
                     var teamWon = boxScore.HomeScore > boxScore.AwayScore;
                     if (teamWon && (mostTOsInWin[team] == null || mostTOsInWin[team].Turnovers < fullBoxScore.Turnovers))
                     {
                         mostTOsInWin[team] = fullBoxScore;
-                        Trace.WriteLine("Most TOs in a win: " + mostTOsInWin[team].Turnovers);
+                        Logger.log("Most TOs in a win: " + mostTOsInWin[team].Turnovers);
                     }
 
                     if (!teamWon && (mostPlyPoints[team] == null || mostPlyPoints[team].MaxPlayerPoints < boxScore.MaxPlayerPoints))
                     {
                         mostPlyPoints[team] = boxScore;
-                        Trace.WriteLine(string.Format("Most player points in loss: {0} ({1}, wk{2})", mostPlyPoints[team].MaxPlayerPoints, mostPlyPoints[team].MaxPlayerPointsPlayer, mostPlyPoints[team].Week));
+                        Logger.log(string.Format("Most player points in loss: {0} ({1}, wk{2})", mostPlyPoints[team].MaxPlayerPoints, mostPlyPoints[team].MaxPlayerPointsPlayer, mostPlyPoints[team].Week));
                     }
 
                     if (!teamWon && (mostTeamPtsInLoss[team] == null || mostTeamPtsInLoss[team].HomeScore < boxScore.HomeScore))
                     {
                         mostTeamPtsInLoss[team] = boxScore;
-                        Trace.WriteLine(string.Format("Most team points in loss: {0} (wk{1})", mostTeamPtsInLoss[team].HomeScore, mostTeamPtsInLoss[team].Week));
+                        Logger.log(string.Format("Most team points in loss: {0} (wk{1})", mostTeamPtsInLoss[team].HomeScore, mostTeamPtsInLoss[team].Week));
                     }
                 }
             }
@@ -152,55 +152,55 @@ namespace CodedUITestProject1
         private void PrintSummary()
         {
             List<int> teams = teamIds;
-            Trace.WriteLine("Longest FG:");
+            Logger.log("Longest FG:");
             teams.Sort(delegate(int t1, int t2) { return longestFGs[t1].LongestFieldGoal > longestFGs[t2].LongestFieldGoal ? -1 : 1; });
-            teams.ForEach(t => Trace.WriteLine(string.Format("{0}: {1} ({2}, wk{3})", owners[t], longestFGs[t].LongestFieldGoal, longestFGs[t].LongestFieldGoalKicker, longestFGs[t].Week)));
-            Trace.WriteLine("");
+            teams.ForEach(t => Logger.log(string.Format("{0}: {1} ({2}, wk{3})", owners[t], longestFGs[t].LongestFieldGoal, longestFGs[t].LongestFieldGoalKicker, longestFGs[t].Week)));
+            Logger.log("");
 
-            Trace.WriteLine("Most DEF sacks:");
+            Logger.log("Most DEF sacks:");
             teams.Sort(delegate(int t1, int t2) { return mostSacks[t1] > mostSacks[t2] ? -1 : 1; });
-            teams.ForEach(t => Trace.WriteLine(string.Format("{0}: {1}", owners[t], mostSacks[t])));
-            Trace.WriteLine("");
+            teams.ForEach(t => Logger.log(string.Format("{0}: {1}", owners[t], mostSacks[t])));
+            Logger.log("");
 
-            Trace.WriteLine("Most catches in a single game:");
+            Logger.log("Most catches in a single game:");
             teams.Sort(delegate(int t1, int t2) { return mostCatches[t1].MostCatches > mostCatches[t2].MostCatches ? -1 : 1; });
-            teams.ForEach(t => Trace.WriteLine(string.Format("{0}: {1} ({2}, wk{3})", owners[t], mostCatches[t].MostCatches, mostCatches[t].MostCatchesPlayer, mostCatches[t].Week)));
-            Trace.WriteLine("");
+            teams.ForEach(t => Logger.log(string.Format("{0}: {1} ({2}, wk{3})", owners[t], mostCatches[t].MostCatches, mostCatches[t].MostCatchesPlayer, mostCatches[t].Week)));
+            Logger.log("");
 
-            Trace.WriteLine("Most team points scored in a loss:");
+            Logger.log("Most team points scored in a loss:");
             teams.Sort(delegate(int t1, int t2) { return mostTeamPtsInLoss[t1].HomeScore > mostTeamPtsInLoss[t2].HomeScore ? -1 : 1; });
-            teams.ForEach(t => Trace.WriteLine(string.Format("{0}: {1} wk{2}", owners[t], mostTeamPtsInLoss[t].HomeScore, mostTeamPtsInLoss[t].Week)));
-            Trace.WriteLine("");
+            teams.ForEach(t => Logger.log(string.Format("{0}: {1} wk{2}", owners[t], mostTeamPtsInLoss[t].HomeScore, mostTeamPtsInLoss[t].Week)));
+            Logger.log("");
 
-            Trace.WriteLine("Longest TD run or catch (make sure it's a TD!)");
+            Logger.log("Longest TD run or catch (make sure it's a TD!)");
             teams.Sort(delegate(int t1, int t2) { return longestPlay[t1].LongestPlay > longestPlay[t2].LongestPlay ? -1 : 1; });
-            teams.ForEach(t => Trace.WriteLine(string.Format("{0}: {1} ({2}, wk{3})", owners[t], longestPlay[t].LongestPlay, longestPlay[t].LongestPlayPlayer, longestPlay[t].Week)));
-            Trace.WriteLine("");
+            teams.ForEach(t => Logger.log(string.Format("{0}: {1} ({2}, wk{3})", owners[t], longestPlay[t].LongestPlay, longestPlay[t].LongestPlayPlayer, longestPlay[t].Week)));
+            Logger.log("");
 
-            Trace.WriteLine("Most player points in a loss:");
+            Logger.log("Most player points in a loss:");
             teams.Sort(delegate(int t1, int t2) { return mostPlyPoints[t1].MaxPlayerPoints > mostPlyPoints[t2].MaxPlayerPoints ? -1 : 1; });
-            teams.ForEach(t => Trace.WriteLine(string.Format("{0}: {1} ({2}, wk{3})", owners[t], mostPlyPoints[t].MaxPlayerPoints, mostPlyPoints[t].MaxPlayerPointsPlayer, mostPlyPoints[t].Week)));
-            Trace.WriteLine("");
+            teams.ForEach(t => Logger.log(string.Format("{0}: {1} ({2}, wk{3})", owners[t], mostPlyPoints[t].MaxPlayerPoints, mostPlyPoints[t].MaxPlayerPointsPlayer, mostPlyPoints[t].Week)));
+            Logger.log("");
 
-            Trace.WriteLine("Most DEF points in a single game:");
+            Logger.log("Most DEF points in a single game:");
             teams.Sort(delegate(int t1, int t2) { return mostDefPts[t1].HomeDefensePts > mostDefPts[t2].HomeDefensePts ? -1 : 1; });
-            teams.ForEach(t => Trace.WriteLine(string.Format("{0}: {1} ({2}, wk{3})", owners[t], mostDefPts[t].HomeDefensePts, mostDefPts[t].HomeDefense, mostDefPts[t].Week)));
-            Trace.WriteLine("");
+            teams.ForEach(t => Logger.log(string.Format("{0}: {1} ({2}, wk{3})", owners[t], mostDefPts[t].HomeDefensePts, mostDefPts[t].HomeDefense, mostDefPts[t].Week)));
+            Logger.log("");
 
-            Trace.WriteLine("Longest punt:");
+            Logger.log("Longest punt:");
             teams.Sort(delegate(int t1, int t2) { return longestPunt[t1].LongPunt > longestPunt[t2].LongPunt ? -1 : 1; });
-            teams.ForEach(t => Trace.WriteLine(string.Format("{0}: {1} ({2}, wk{3})", owners[t], longestPunt[t].LongPunt, longestPunt[t].HomeDefense, longestPunt[t].Week)));
-            Trace.WriteLine("");
+            teams.ForEach(t => Logger.log(string.Format("{0}: {1} ({2}, wk{3})", owners[t], longestPunt[t].LongPunt, longestPunt[t].HomeDefense, longestPunt[t].Week)));
+            Logger.log("");
 
-            Trace.WriteLine("Most rushes in a single game:");
+            Logger.log("Most rushes in a single game:");
             teams.Sort(delegate(int t1, int t2) { return mostRushes[t1].MostRushes > mostRushes[t2].MostRushes ? -1 : 1; });
-            teams.ForEach(t => Trace.WriteLine(string.Format("{0}: {1} ({2}, wk{3})", owners[t], mostRushes[t].MostRushes, mostRushes[t].MostRushesPlayer, mostRushes[t].Week)));
-            Trace.WriteLine("");
+            teams.ForEach(t => Logger.log(string.Format("{0}: {1} ({2}, wk{3})", owners[t], mostRushes[t].MostRushes, mostRushes[t].MostRushesPlayer, mostRushes[t].Week)));
+            Logger.log("");
 
-            Trace.WriteLine("Most TOs in a win:");
+            Logger.log("Most TOs in a win:");
             teams.Sort(delegate(int t1, int t2) { return mostTOsInWin[t1].Turnovers > mostTOsInWin[t2].Turnovers ? -1 : 1; });
-            teams.ForEach(t => Trace.WriteLine(string.Format("{0}: {1} wk{2}", owners[t], mostTOsInWin[t].Turnovers, mostTOsInWin[t].Week)));
-            Trace.WriteLine("");
+            teams.ForEach(t => Logger.log(string.Format("{0}: {1} wk{2}", owners[t], mostTOsInWin[t].Turnovers, mostTOsInWin[t].Week)));
+            Logger.log("");
             Trace.Flush();
         }
 
