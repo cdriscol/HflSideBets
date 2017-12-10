@@ -59,16 +59,17 @@ namespace CodedUITestProject1
         public void NavigateAllWeeks()
         {
             // var weeks = 6;
-            var weeks = 1;
+            var weeks = 13;
             initDictionaries();
             Logger.log("NavigateAllWeeks");
             var map = new FantasyFootballMap();
+            var totalSteps = weeks * teamIds.Count;
+            var stepsCompleted = 0.0;
             for (int week = 1; week <= weeks; week++)
             {
                 Logger.log(string.Format("Processing week {0}", week));
                 foreach (var team in teamIds)
                 {
-
                     Logger.log(string.Format("Processing team {0} in week {1}", owners[team], week));
                     var boxScore = BoxScoreData.getBoxScore(year, week, team);
                     if (boxScore == null)
@@ -143,6 +144,9 @@ namespace CodedUITestProject1
                         mostTeamPtsInLoss[team] = boxScore;
                         Logger.log(string.Format("Most team points in loss: {0} (wk{1})", mostTeamPtsInLoss[team].HomeScore, mostTeamPtsInLoss[team].Week));
                     }
+
+                    double percentDone = (stepsCompleted++ / totalSteps) * 100.0;
+                    Logger.log(string.Format("{0}% complete", Math.Round(percentDone, 2)));
                 }
             }
 
