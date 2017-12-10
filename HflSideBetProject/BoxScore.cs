@@ -124,8 +124,8 @@ namespace CodedUITestProject1
             var html = web.Load(url).DocumentNode.OuterHtml;
             var doc = new HtmlDocument();
             doc.LoadHtml(html);
-            
-            var longFg = doc.DocumentNode.SelectNodes("//tr[td//text()[contains(., '"+kickerName+"')]]//td[contains(@class, 'long')]");
+
+            var longFg = doc.DocumentNode.SelectNodes("//tr[td//text()[contains(., \"" + kickerName.Replace("'", "\'") + "\")]]//td[contains(@class, 'long')]");
             LongestFieldGoalKicker = kickerName;
             LongestFieldGoal = longFg == null ? 0 : longFg[0].getDoubleFromInnerText();
         }
